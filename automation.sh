@@ -45,3 +45,30 @@ echo "Moving tar to now S3"
 aws s3 \
 cp /tmp/${myname}-httpd-logs-${timestamp}.tar \
 s3://${s3_bucket}/${myname}-httpd-logs-${timestamp}.tar
+
+##Cronjob Automation##
+crontab -l > /etc/cron.d/automation
+echo "0 10 * * * /bin/sh /root/Automation_Project/automation.sh" >> /etc/cron.d/automation
+
+crontab automation
+rm automation
+
+##Creating inventory.html file##
+FILE=/var/www/html/inventory.html
+if [[ -f "$FILE" ]]; then
+        echo "$FILE exists."
+        tarbackup="$(ls /tmp/abhinav-*.tar | sort -V | tail -n1)"
+        echo $tarbackup
+        echo $timestamp
+        size=$(wc -c "$tarbackup" | awk '{print $1}')
+        echo $size
+        echo -e "httpd-logs\t\t$timestamp\t\ttar\t\t$size" >> $FILE
+
+
+else
+        echo "$FILE does not exist, hence creating the file"
+        cd /var/www/html/
+        touch inventory.html
+        echo "File has been successfully created"
+                echo "Log Type         Time Created         Type        Size" >  /var/www/html/inventory.html
+fi
